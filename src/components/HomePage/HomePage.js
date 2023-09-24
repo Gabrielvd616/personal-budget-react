@@ -1,7 +1,55 @@
 import React from "react";
+import axios from "axios";
+import Chart from "chart.js";
+import { change } from "./d3chart.js";
+import * as d3 from "d3-3";
 
-// This is an A11y Change (#2, added tabindex attribute to ensure skip link works correctly for tab key)
 function HomePage() {
+  var dataSource = {
+    datasets: [
+      {
+        data: [],
+        backgroundColor: [
+          "#ffcd56",
+          "#ff6384",
+          "#36a2eb",
+          "#fd6b19",
+          "#41c92c",
+          "#7452ff",
+          "#63dbd9",
+        ],
+      },
+    ],
+    labels: [],
+  };
+
+  function createChart() {
+    var ctx = document.getElementById("myChart").getContext("2d");
+    new Chart(ctx, {
+      type: "pie",
+      data: dataSource,
+    });
+  }
+
+  function getBudget() {
+    axios.get("http://localhost:3002/budget").then((res) => {
+      for (var i = 0; i < res.data.myBudget.length; i++) {
+        dataSource.datasets[0].data[i] = res.data.myBudget[i].budget;
+        dataSource.labels[i] = res.data.myBudget[i].title;
+        createChart();
+      }
+      change(
+        res.data.myBudget.map((item) => {
+          return { label: item.title, value: item.budget };
+        }),
+        d3
+      );
+    });
+  }
+
+  getBudget();
+
+  // This is an A11y Change (#2, added tabindex attribute to ensure skip link works correctly for tab key)
   return (
     <main className="center" id="main" tabIndex="-1">
       <div className="page-area">
